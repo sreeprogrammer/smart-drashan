@@ -155,6 +155,11 @@ export default function TempleInformationSection({
   const hasContent = fields.some(([key]) => details[key] !== undefined && details[key] !== null && details[key] !== '')
     || items.length > 0
     || photos.length > 0;
+  const recordSummary = record?.status === 'verified'
+    ? `Verified information · last checked ${record.last_verified ? new Date(record.last_verified).toLocaleDateString() : 'date unavailable'}`
+    : record?.status === 'pending'
+      ? 'Demo content · not official or verified'
+      : NA;
 
   return (
     <section id={section.id} ref={sectionRef} className="mb-12 scroll-mt-28">
@@ -163,7 +168,7 @@ export default function TempleInformationSection({
       </h2>
       <details open className="rounded-xl border border-gold-200 bg-white shadow-sm">
         <summary className="cursor-pointer list-none rounded-xl px-5 py-4 font-semibold text-navy-900 marker:hidden">
-          {record ? `Verified information · last checked ${record.last_verified ? new Date(record.last_verified).toLocaleDateString() : 'date unavailable'}` : NA}
+          {recordSummary}
         </summary>
         <div className="space-y-5 border-t border-gold-100 p-5">
           {photoLoadError && photos.length > 0 && (

@@ -9,7 +9,7 @@ import {
   supabase, type Temple, type District, type TempleImage, type TempleInformation,
 } from '@/lib/supabase';
 import TempleInformationSection from '@/components/TempleInformationSection';
-import { TEMPLE_INFORMATION_SECTIONS } from '@/data/templeInformation';
+import { createDemoTempleInformation, TEMPLE_INFORMATION_SECTIONS } from '@/data/templeInformation';
 
 const NA = 'Information not available – Admin update required';
 
@@ -179,6 +179,13 @@ export default function TempleDetailPage() {
     );
 
   const { temple, district, information, photoUrls, photoLoadError, informationLoadError } = data;
+  const demoRecords = import.meta.env.DEV ? createDemoTempleInformation(temple.id) : [];
+  const sectionRecords = TEMPLE_INFORMATION_SECTIONS.map((section) => ({
+    section,
+    record: information.find((item) => item.section === section.id)
+      ?? demoRecords.find((item) => item.section === section.id),
+  }));
+  const isShowingDemoInformation = sectionRecords.some(({ record }) => record?.status === 'pending');
 
   const mapUrl = temple.latitude && temple.longitude
     ? `https://www.google.com/maps?q=${temple.latitude},${temple.longitude}&z=15&output=embed`
@@ -283,6 +290,11 @@ export default function TempleDetailPage() {
         </aside>
 
         <div className="min-w-0 flex-1">
+        {isShowingDemoInformation && (
+          <div role="note" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <strong>DEMO DATA — NOT OFFICIAL.</strong> Sections marked as demo are placeholders and do not describe this temple. Only sections labelled verified contain approved information. Replace demo entries with source-verified details before publishing.
+          </div>
+        )}
         {informationLoadError && (
           <div role="alert" className="mb-8 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -378,11 +390,11 @@ export default function TempleDetailPage() {
           </div>
         </section>
 
-        {TEMPLE_INFORMATION_SECTIONS.map((section) => (
+        {sectionRecords.map(({ section, record }) => (
           <TempleInformationSection
             key={section.id}
             section={section}
-            record={information.find((item) => item.section === section.id)}
+            record={record}
             photoUrls={photoUrls}
             photoLoadError={photoLoadError}
             sectionRef={(element) => { sectionRefs.current[section.id] = element; }}
